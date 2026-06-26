@@ -1,56 +1,59 @@
-# Welcome to your Expo app 👋
-
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
-
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+# Trajineras App
+ 
+App móvil de reservas de trajineras (Xochimilco). Permite a usuarios registrarse, ver el catálogo de trajineras, seleccionar fecha/hora y reservar, con pago integrado.
+ 
+## Stack
+ 
+- **Frontend:** Expo + React Native (New Architecture), Expo Router, TypeScript
+- **Backend:** Hono.js + Fly.io + Neon PostgreSQL + Prisma ORM
+- **Pagos:** Stripe
+- **Gestor de paquetes:** pnpm (con endurecimiento de seguridad de cadena de suministro — ver sección de Entorno)
+## Setup del entorno
+ 
 ```bash
-npm run reset-project
+nvm use            # usa la versión de Node fijada en .nvmrc
+corepack enable
+pnpm install
+pnpm expo start -c
 ```
+ 
+Escanea el QR con la app Expo Go en tu teléfono. **No usar el modo Web** — `expo-secure-store` no lo soporta.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+El proyecto usa pnpm con ajustes en `pnpm-workspace.yaml` para mitigar ataques de cadena de suministro (scripts de instalación maliciosos, paquetes recién publicados sin revisar). Si `pnpm install` bloquea algún script de build, revísalo con:
+```bash
+pnpm approve-builds
+```
+Aprueba solo paquetes que reconozcas como legítimos.
 
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Estructura del proyecto
+ 
+```
+src/
+  app/                  ← rutas (Expo Router)
+    _layout.tsx         ← layout raíz: AuthProvider + Stack.Protected
+    (auth)/             ← grupo: pantallas de login/registro (sin sesión)
+      _layout.tsx
+      login.tsx
+      registro.tsx
+    (tabs)/             ← grupo: pantallas con sesión activa, navegación por pestañas
+      _layout.tsx
+      index.tsx         ← Home
+      explore.tsx
+  components/           ← componentes
+  contexts/             ← estado compartido entre pantallas (Providers + hooks useX())
+    AuthContext.tsx     ← sesión, JWT, persistencia en SecureStore
+  constants/
+  hooks/
+```
+## Estado actual
+ 
+- ✅ Story 4.2 (T-36, T-37, T-38) — Splash, Login, Registro
+- ✅ Story 4.3 — T-39 (`AuthContext`)
+- ⬜ Story 4.3 — T-40 (pantalla de Perfil), T-41 (endpoint `PATCH /usuarios/perfil`)
+- ⬜ Resto del backlog (catálogo, reservas, pagos, administración)
+## Pendientes abiertos
+ 
+- Confirmar con el equipo de backend si `/auth/login` y `/auth/registro` ya existen, y el contrato real de request/response (actualmente el frontend asume `{ token, usuario }`).
+- `.env` con `EXPO_PUBLIC_API_URL` todavía no configurado — el código usa un placeholder (`http://localhost:3000`).
+---
+*Este README se actualiza conforme avanza el proyecto, story por story.*

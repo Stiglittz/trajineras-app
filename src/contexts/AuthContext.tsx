@@ -25,6 +25,7 @@ interface AuthContextType {
   isLoading: boolean;
   iniciarSesion: (token: string, usuario: Usuario) => Promise<void>;
   cerrarSesion: () => Promise<void>;
+  actualizarUsuario: (datos: Partial<Usuario>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -91,8 +92,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsuario(null);
   }
 
+  async function actualizarUsuario(datosActualizados: Partial<Usuario>) {
+    if (!usuario) return;
+    const usuarioActualizado = { ...usuario, ...datosActualizados };
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(usuarioActualizado));
+    setUsuario(usuarioActualizado);
+  }
+
   return (
-    <AuthContext.Provider value={{ usuario, token, isLoading, iniciarSesion, cerrarSesion }}>
+    <AuthContext.Provider
+      value={{ usuario, token, isLoading, iniciarSesion, cerrarSesion, actualizarUsuario }}
+    >
       {children}
     </AuthContext.Provider>
   );
